@@ -1,0 +1,117 @@
+---
+title: "individual2.Rmd"
+author: "Emily Pollock"
+date: "3/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages('readxl')
+dat <- readxl::read_xls('GSS.xls')
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+dat <- dat %>%
+  rename(Gss_year = `Gss year for this respondent`, happiness = `General happiness`, political_party = `Political party affiliation`, sex = `Respondents sex`, school_completed = `Highest year of school completed`, divorced_or_separated = `Ever been divorced or separated`, marital_status = `Marital status`, labor_status = `Labor force status`, id = `Respondent id number`, ballot_used = `Ballot used for interview`)
+```
+
+```{r}
+head(dat)
+```
+
+##Problem 1
+
+```{r}
+dat %>%
+  mutate(avg_school_completed = as.numeric(school_completed)) %>%
+  na.omit %>% 
+  group_by(marital_status) %>%
+  summarize(mean(avg_school_completed)
+  )
+```
+  
+### From the data, it appears that those who are divorced or have never married have been in school the longest. Although those who didn't answer for marital status have the highest average of school years completed overall, we can't know for sure if this is due to their marital status being one of the two with the highest averages. Respondents who are separated or widowed appear to have been in school for the shortest amount of time, as shown by the low averages.
+
+## Problem 2
+
+```{r}
+dat1 <- dat %>%
+  mutate(avg_school_completed = as.numeric(school_completed)) %>%
+  na.omit %>% 
+  group_by(marital_status) %>%
+  summarize(better_educated = (school_completed > avg_school_completed), .groups = 'drop', n=n())
+str(dat1)
+```
+
+## Problem Three
+
+```{r}
+ggplot(dat, aes(x=marital_status, fill=happiness)) + geom_bar() + theme(axis.text.x = element_text(angle = 90), legend.title = element_text(size = 5),legend.text = element_text(size = 5), legend.key.size = unit(1, "line")) + xlab("Marital Status") + ylab("Happiness Count") + ggtitle("Happiness vs Marital Status")
+```
+```{r}
+table(dat$marital_status)
+table(dat$happiness)
+```
+
+### According to the stacked bar chart, the marital status that has the most happy repsondents is "married". This makes sense because it is common knowledge that good relationships tend to make you feel happier. However, according to the marital status summary, the "married" status has the most respondents, which could make it hard to make direct comparisons between the other marital status'. It is true, though, that the respondents are more happy than not for each marital status. And, when looking at the summary for happiness, we can see that the happy respondents far outweigh the unhappy responents. Despite the different counts of respondents for each status, we can observe that the ratios of unhappy to happy for "divorced" and "never married" are somewhat large for the number of respondents when comparing those status' to "married." In other words, there are quite a large amount of unhappy people relative to the total respondents that are divorced or never married in comparison to the happiness ratio for the married status.This could be due to divorcees recovering poorly from their severed relationshops and single people being lonely.
+
+## Problem 4
+
+```{r}
+ggplot(dat, aes(x=marital_status, fill=happiness)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, size = 5), axis.text.y = element_text(size = 5), legend.title = element_text(size = 5),legend.text = element_text(size = 5), legend.key.size = unit(1, "line")) + xlab("Marital Status") + ylab("Happiness Count") + ggtitle("Happiness vs Marital Status") + facet_wrap(~political_party)
+```
+```{r}
+table(dat$political_party)
+```
+
+### According to this facet, political affiliation does not seem to affect the relationship between marital status and happiness too much. Married people still take the lead as the happiest people, and all the other status' retain the similar ratios of happy to unhappy when political affiliation is added as a variable. That said, when looking at the individual political parties and the overall happiness of the people within them, those who are "not strong democrats" and "not strong republicans" are the happiest overall. These two parties have the most married people, which demonstrates that married people with more moderate politics may tend to be happier people.
+
+## Problem Five
+
+```{r}
+ggplot(dat, aes(x=marital_status, y=school_completed)) + geom_boxplot()
+```
+
+
+
+
+## Problem Six
+
+### Question 1: Is there a connection between labor status and number of years educated?
+
+```{r}
+ggplot(dat, aes(x=labor_status, y=school_completed)) + geom_boxplot() + xlab("Labor Status") + ylab("School Years Completed") + ggtitle("Labor Status vs School Years Completed")
+
+```
+
+```{r}
+ggplot(dat, aes(x=labor_status, fill=school_completed)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, size = 5), plot.title=element_text(size=8), axis.text.y = element_text(size = 5), legend.title = element_text(size = 5),legend.text = element_text(size = 5), legend.key.size = unit(1, "line")) + xlab("Labor Status") + ylab("School Years Completed") + ggtitle("School Completed vs Labor Status According to Political Party") + facet_wrap(~political_party)
+
+```
+
+
+
+### Question 2: Do more females or males tend to be divorced or separated?
+
+```{r}
+ggplot(dat, aes(x=divorced_or_separated, fill=sex)) + geom_bar(position = "dodge") + theme(axis.text.x = element_text(angle = 90)) + xlab("Divorced or Separated") + ylab("Count") + ggtitle("Sex vs Divorced or Separated Status",)
+
+```
+
+```{r}
+table(dat$divorced_or_separated, dat$sex)
+table(dat$sex)
+```
+
+### When looking at the respondents who answered yes for divorced or separated, there are slightly more females than males. However, when looking at those who answered no, females take quite the lead. This could simply be due to the fact that there are more female respondents overall than males. If the amount of female and male respondents was equal, the bar chart would probably show little difference between the amount of males and females who said yes or no to "divorced or separated."
+
