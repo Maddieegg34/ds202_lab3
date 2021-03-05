@@ -1,0 +1,95 @@
+---
+title: "Individual3"
+author: "Shellie Jurchisin"
+date: "3/2/2021"
+output: html_document
+---
+```{r}
+library(dplyr)
+library(tidyverse)
+library(classdata)
+library(ggplot2)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dat <- readxl::read_xls('GSS.xls')
+```
+```{r}
+dat<- rename(dat, 'Year' = 'Gss year for this respondent')
+dat<- rename(dat, 'HappyCt' = 'General happiness')
+dat<- rename(dat, 'PoliticalParty' = 'Political party affiliation')
+dat<- rename(dat, 'Gender' = 'Respondents sex')
+dat<- rename(dat, 'Education' = 'Highest year of school completed')
+dat<- rename(dat, 'Divorced' = 'Ever been divorced or separated')
+dat<- rename(dat, 'MaritalStatus' = 'Marital status')
+dat<- rename(dat, 'LaborStatus' = 'Labor force status')
+dat<- rename(dat, 'ID' = 'Respondent id number')
+dat<- rename(dat, 'Ballot' = 'Ballot used for interview')
+```
+
+#1)
+```{r}
+dat %>% 
+  group_by(MaritalStatus) %>%
+  summarize(avg_edu = mean(as.numeric(Education), na.rm=TRUE)) %>%
+  arrange(avg_edu)
+```
+```{r}
+dat %>% 
+  group_by(MaritalStatus) %>%
+  summarize(avg_edu = mean(as.numeric(Education), na.rm=TRUE)) %>%
+  ggplot(aes(x=reorder(MaritalStatus, avg_edu), weight=avg_edu))+geom_bar(aes(fill=MaritalStatus), show.legend = FALSE) + xlab("Marital Status") + ylab("Average Time of Education (years)")
+```
+#Explanation: We can see that people who put no answer for their martial status on average had the highest amount of education (15.5 years). Those who responded with never married, divorced, and married all had very similar levels of education (13.3 years, 13.1 years, 12.9 years). This tells us that someones education level and martial status aren't heavily correlated.
+
+#2)
+```{r}
+better_edu <- dat %>% 
+  group_by(MaritalStatus) %>%
+  filter(Education > mean(as.numeric(Education), na.rm=TRUE))
+str(better_edu)
+```
+#3)
+```{r}
+HappyCt <- filter(dat, HappyCt == 'Very happy' | HappyCt == 'Pretty happy')
+p <- ggplot(HappyCt, aes(x = HappyCt, y = MaritalStatus)) + geom_count()
+p + ggtitle('Marital Status vs. Happiness') + xlab('HappyCt') + ylab('Marital Status')
+```
+#numerical
+```{r}
+HappyCt %>% count(MaritalStatus)
+```
+#Explanation: It looks like people who are married tend to be more happy (pretty happy & very happy) while those who are separated, divorced, or widowed don't appear to be as happy.
+
+#4)
+```{r}
+h = dat %>% group_by(`MaritalStatus`, `PoliticalParty`) %>%
+  filter(`HappyCt` == "Pretty happy" | `HappyCt` == "Very happy") %>%
+  summarize(`HappyCt.n` = n()) %>%
+  mutate(`HappyCt.per2` = `HappyCt.n`/ sum(`HappyCt.n`))
+```
+```{r}
+h %>%
+  ggplot(aes(x = `MaritalStatus`, y = `HappyCt.per2`)) +
+  geom_bar(stat = 'identity') + theme(axis.text.x = element_text(angle = 90)) +
+  facet_wrap(~`PoliticalParty`)
+```
+#Explanation: Based off the charts the code's above displayed, it appears that people's affiliated political party play's a part in happiness. From what I see it looks like like democrats have higher happiness levels compared to republicans and independents.
+
+#5)
+```{r}
+dat<-dat %>%mutate(Education = as.numeric(Education))
+EduMS <- dat %>%
+    group_by(MaritalStatus) %>%
+    summarise(Education_mean = mean(Education, na.rm = TRUE)) %>%
+    arrange(Education_mean)
+EduMS
+ggplot(dat, aes(x = MaritalStatus, y = Education)) + geom_boxplot() 
+```
+#Explanation: From the results the inputs above produced, it appears that education doesnt really affect martial status. The main thing I saw is that people who aren't married have a higher education.
+
+#6)
